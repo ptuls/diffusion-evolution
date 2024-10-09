@@ -46,7 +46,7 @@ class DiscreteController:
         self.model = model
         self.action_space = action_space
 
+    @torch.inference_mode()
     def __call__(self, x):
-        with torch.no_grad():
-            logits = self.model(x)
-            return torch.argmax(logits).item()
+        logits = self.model(x)
+        return torch.argmax(logits).item()

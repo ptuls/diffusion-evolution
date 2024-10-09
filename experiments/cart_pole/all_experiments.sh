@@ -17,4 +17,4 @@ python cartpole_cmaes.py
 
 # do visualization
 echo "Running visualization..."
-python visulization.py
+python visualization.py

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from diffevo import LatentBayesianGenerator, RandomProjection, DDIMSchedulerCosine
 import gym
+import pathlib
 from tqdm import tqdm
 
 import matplotlib
@@ -157,6 +158,12 @@ if __name__ == "__main__":
 
     all_reward_history = []
 
+    data_path = pathlib.Path("data/latent")
+    data_path.mkdir(exist_ok=True, parents=True)
+
+    figure_path = pathlib.Path("figures")
+    figure_path.mkdir(exist_ok=True)
+
     for i in range(num_experiment):
         x, reward_history, population, x0_population, observations, random_map = experiment(
             num_step=10, population_size=256, T=10, scaling=1, noise=1
@@ -165,18 +172,18 @@ if __name__ == "__main__":
         all_reward_history.append(reward_history)
         if i == 0:
             print("saving the data in the first experiment ...")
-            torch.save(population, "./data/latent/population.pt")
-            torch.save(x0_population, "./data/latent/x0_population.pt")
-            torch.save(observations, "./data/latent/observations.pt")
-            torch.save(random_map.state_dict(), "./data/latent/random_map.pt")
+            torch.save(population, data_path / "population.pt")
+            torch.save(x0_population, data_path / "x0_population.pt")
+            torch.save(observations, data_path / "observations.pt")
+            torch.save(random_map.state_dict(), data_path / "random_map.pt")
 
             make_plot(reward_history)
-            plt.savefig("./figures/fitness.png")
-            plt.savefig("./figures/fitness.pdf")
+            plt.savefig(figure_path / "fitness.png")
+            plt.savefig(figure_path / "fitness.pdf")
             plt.close()
 
             best_para = population[-1][reward_history[-1].argmax().item()]
             make_video(best_para)
 
     # save the data
-    torch.save(all_reward_history, "./data/latent/reward_history.pt")
+    torch.save(all_reward_history, data_path / "reward_history.pt")

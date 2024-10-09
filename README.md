@@ -4,10 +4,15 @@ This repo is for our preprint [Diffusion models are evolutionary algorithms](htt
 
 ![](./experiments/2d_models/two_peaks/images/framwork.jpg)
 
-The Diffusion Evolution framework treats inversed diffusion as evolutionary algorithm, where the population estimates its added noise (or their noise-free states) based on its neighbors' fitness then evolves via denoising. The following figure shows the process on optimizing a two-peak density function. The Diffusion Evolution initially has large neighbor range (shown as blue disk), calculating $x_0$ based on the fitness of its neighbors then move toward estimated $x_0$.
+The Diffusion Evolution framework treats inverted diffusion as evolutionary algorithm, where the population estimates its added noise (or their noise-free states) based on its neighbors' fitness then evolves via denoising. The following figure shows the process on optimizing a two-peak density function. The Diffusion Evolution initially has large neighbor range (shown as blue disk), calculating $x_0$ based on the fitness of its neighbors then move toward estimated $x_0$.
 
 ![](./experiments/2d_models/figures/process.png)
 
+We can see this via the equation below
+
+![](./experiments/2d_models/two_peaks/images/idea.png)
+
+which showcases the operations in evolutionary algorithms.
 
 ## Install
 

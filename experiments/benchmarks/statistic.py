@@ -1,14 +1,15 @@
-import matplotlib.pyplot as plt
+from cmaes import CMAES_benchmark
+import random
+
+import numpy as np
+import pandas as pd
+import torch
+from tqdm import tqdm
+
 from cmaes import CMAES_benchmark
 from diff_evo import DiffEvo_benchmark
-from pepg import PEPG_benchmark
 from openes import OpenES_benchmark
-import torch
-import numpy as np
-import random
-from tqdm import tqdm
-import pandas as pd
-
+from pepg import PEPG_benchmark
 
 objs = ["rosenbrock", "beale", "himmelblau", "ackley", "rastrigin"]
 

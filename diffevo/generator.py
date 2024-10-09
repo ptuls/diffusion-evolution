@@ -38,7 +38,7 @@ class BayesianEstimator:
         return torch.exp(-(dist**2) / (2 * sigma**2))
 
     def _estimate(self, x_t, p_x_t):
-        # diffusion proability, P = N(x_t; \sqrt{α_t}x,\sqrt{1-α_t})
+        # diffusion probability, P = N(x_t; \sqrt{α_t}x,\sqrt{1-α_t})
         mu = self.x * (self.alpha**0.5)
         sigma = (1 - self.alpha) ** 0.5
         p_diffusion = self.gaussian_prob(x_t, mu, sigma)

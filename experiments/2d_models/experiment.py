@@ -6,6 +6,7 @@ from two_peaks.experiment import two_peak_density
 from two_peaks_step.experiment import two_peak_density as two_peak_density_step
 from tqdm import tqdm
 import numpy as np
+import pathlib
 
 import matplotlib
 
@@ -158,8 +159,14 @@ if __name__ == "__main__":
         two_peak_density, initial_population=x0, scaling=1.5, noise=0.1
     )
 
+    data_path = pathlib.Path("data")
+    data_path.mkdir(exist_ok=True)
+
+    figure_path = pathlib.Path("figures")
+    figure_path.mkdir(exist_ok=True)
+
     # save results
-    torch.save([result_two_peak, x0_trace, scheduler_two_peak.alpha], "./data/two_peak.pt")
+    torch.save([result_two_peak, x0_trace, scheduler_two_peak.alpha], data_path / "two_peak.pt")
 
     # make plots
     plt.figure(figsize=(8, 4))
@@ -176,6 +183,6 @@ if __name__ == "__main__":
     make_plot_distance_histogram(x0_trace, trace, row=1, total_step=100)
 
     plt.tight_layout()
-    plt.savefig(f"./figures/process.png")
-    plt.savefig(f"./figures/process.pdf")
+    plt.savefig(figure_path / "process.png")
+    plt.savefig(figure_path / "process.pdf")
     plt.close()
