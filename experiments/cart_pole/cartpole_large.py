@@ -7,8 +7,9 @@ from tqdm import tqdm
 from cartpole_latent import compute_rewards_list
 
 import matplotlib
-matplotlib.rcParams['mathtext.fontset'] = 'stix'
-matplotlib.rcParams['font.family'] = 'STIXGeneral'
+
+matplotlib.rcParams["mathtext.fontset"] = "stix"
+matplotlib.rcParams["font.family"] = "STIXGeneral"
 
 
 def experiment(num_step, T=1, population_size=512, scaling=0.1, noise=1, weight_decay=0):
@@ -23,7 +24,7 @@ def experiment(num_step, T=1, population_size=512, scaling=0.1, noise=1, weight_
 
     random_map = RandomProjection(17410, 2, normalize=True)
 
-    for t, alpha in tqdm(scheduler, total=scheduler.num_step-1):
+    for t, alpha in tqdm(scheduler, total=scheduler.num_step - 1):
         rewards, obs = compute_rewards_list(4, 2, 128, x * scaling, n_hidden_layers=2)
         l2 = torch.norm(population[-1], dim=-1) ** 2
         fitness = torch.exp((rewards - rewards.max()) / T - l2 * weight_decay)
@@ -35,7 +36,7 @@ def experiment(num_step, T=1, population_size=512, scaling=0.1, noise=1, weight_
         x0_population.append(x0 * scaling)
         population.append(x * scaling)
         observations.append(obs)
-    
+
     rewards, obs = compute_rewards_list(4, 2, 128, x * scaling, n_hidden_layers=2)
     reward_history.append(rewards)
     observations.append(obs)
@@ -46,18 +47,23 @@ def experiment(num_step, T=1, population_size=512, scaling=0.1, noise=1, weight_
 
     return x, reward_history, population, x0_population, observations, random_map
 
+
 def make_plot(reward_history):
-    plt.plot(reward_history.median(dim=-1).values, label="median", color='#46B3D5')
+    plt.plot(reward_history.median(dim=-1).values, label="median", color="#46B3D5")
     plt.fill_between(
         range(reward_history.size(0)),
         reward_history.quantile(0.1, dim=-1),
         reward_history.quantile(0.9, dim=-1),
-        alpha=0.3, label=r"10%-90% quantile", color='#46B3D5')
+        alpha=0.3,
+        label=r"10%-90% quantile",
+        color="#46B3D5",
+    )
     plt.xlabel("generation")
     plt.ylabel("rewards")
     plt.legend()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
 
@@ -66,16 +72,13 @@ if __name__ == '__main__':
 
     for i in range(num_experiment):
         x, reward_history, population, x0_population, observations, random_map = experiment(
-            10, 
-            population_size=256, 
-            T=10, 
-            scaling=1, 
-            noise=1)
-        
+            10, population_size=256, T=10, scaling=1, noise=1
+        )
+
         all_reward_history.append(reward_history)
-        
+
         if i == 0:
-            print('saving the data from the first experiment ...')
+            print("saving the data from the first experiment ...")
 
             # save the data
             torch.save(population, "./data/large/population_large.pt")

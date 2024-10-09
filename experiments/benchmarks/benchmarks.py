@@ -13,6 +13,7 @@ Main functions used in the benchmarks:
    Returns the appropriate colormap for the given objective function.
 
 """
+
 import matplotlib.pyplot as plt
 from foobench import Objective
 import torch
@@ -25,7 +26,7 @@ fitness_target = {
     "beale": 0,
     "himmelblau": 0,
     "ackley": -12.5401,
-    "rastrigin": -64.6249
+    "rastrigin": -64.6249,
 }
 
 distance_scale = {
@@ -33,11 +34,13 @@ distance_scale = {
     "beale": 20,
     "himmelblau": 17.01,
     "ackley": 2,
-    "rastrigin": 30
+    "rastrigin": 30,
 }
 
 
-def visualize_2D(objective, ax=None, n_points=100, parameter_range=None, title=None, **imshow_kwargs):
+def visualize_2D(
+    objective, ax=None, n_points=100, parameter_range=None, title=None, **imshow_kwargs
+):
     # get a list of points in the parameter range
     if parameter_range is None:
         parameter_range = [[-4, 4], [-4, 4]]
@@ -49,55 +52,76 @@ def visualize_2D(objective, ax=None, n_points=100, parameter_range=None, title=N
     if ax is None:
         fig, ax = plt.subplots(1, 1)
 
-    im = ax.imshow(torch.log(Z.T+1e-3), extent=(*parameter_range[0], *reversed(parameter_range[1])), **imshow_kwargs)
+    im = ax.imshow(
+        torch.log(Z.T + 1e-3),
+        extent=(*parameter_range[0], *reversed(parameter_range[1])),
+        **imshow_kwargs
+    )
     ax.invert_yaxis()
 
     ax.set_title(title)
 
     return im
 
-def get_cmap(obj_name:str):
+
+def get_cmap(obj_name: str):
     return custom_cmap
+
 
 def rescale_wrapper(obj, vmin=None, vmax=None):
     if vmin is None or vmax is None:
         return obj
+
     def rescaled_obj(x):
         # return (obj(x) - vmin) / (vmax - vmin)
         return obj(x) - vmin
+
     return rescaled_obj
+
 
 def inverse_wrapper(obj, eps=1e-2, p=2):
     def inverse_obj(x):
         return eps / (obj(x) ** p + eps)
+
     return inverse_obj
+
 
 def objective_wrapper(obj, target=0, scale=1, eps=1e-3, p=2):
     def wrapped_obj(x):
         d = abs(obj(x) - target) / scale
-        return eps / (d ** p + eps)
+        return eps / (d**p + eps)
+
     return wrapped_obj
+
 
 def energy_wrapper(obj, temperature=1, target=0):
     def wrapped_obj(x):
         return torch.exp(-(obj(x) - target) / temperature)
+
     return wrapped_obj
+
 
 def exp_wrapper(obj, temperature=1):
     def wrapped_obj(x):
         return torch.exp(obj(x) / temperature)
+
     return wrapped_obj
 
-def get_obj(obj_name:str, eps=1e-2):
-    if obj_name in ["rosenbrock", "beale", "himmelblau"]: # zero as the target
+
+def get_obj(obj_name: str, eps=1e-2):
+    if obj_name in ["rosenbrock", "beale", "himmelblau"]:  # zero as the target
         obj = Objective(foo=obj_name, maximize=False, limit_val=100)
-    else: # high values as the target
+    else:  # high values as the target
         obj = Objective(foo=obj_name, maximize=True, limit_val=1e-9)
-    
-    return obj, objective_wrapper(obj, target=fitness_target[obj_name], scale=distance_scale[obj_name], eps=eps)
+
+    return obj, objective_wrapper(
+        obj, target=fitness_target[obj_name], scale=distance_scale[obj_name], eps=eps
+    )
+
 
 def get_visualize_obj(obj):
     return Objective(foo=obj.foo_name)
+
 
 def plot_background(obj, ax=None, title=None):
     # obj = get_visualize_obj(obj)
@@ -108,8 +132,8 @@ def plot_background(obj, ax=None, title=None):
 
     if ax is not None:
         # remove x, y label and ticks
-        ax.set_xlabel('')
-        ax.set_ylabel('')
+        ax.set_xlabel("")
+        ax.set_ylabel("")
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_aspect('equal', adjustable='box')
+        ax.set_aspect("equal", adjustable="box")

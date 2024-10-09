@@ -1,18 +1,19 @@
 from torch.distributions import MultivariateNormal
 import torch
 
+
 def two_peak_density(x, mu1=None, mu2=None, std=0.1):
     if mu1 is None:
-        mu1 = torch.tensor([-1., -1.])
+        mu1 = torch.tensor([-1.0, -1.0])
     if mu2 is None:
-        mu2 = torch.tensor([1., 1.])
+        mu2 = torch.tensor([1.0, 1.0])
 
     # Checking if the input tensor x has shape (2,) and unsqueeze to make it (*N, 2)
     if len(x.shape) == 1:
         x = x.unsqueeze(0)
 
     # Covariance matrix for the Gaussian distributions (identity matrix, since it's a standard Gaussian)
-    covariance_matrix = torch.eye(2) * (std ** 2)
+    covariance_matrix = torch.eye(2) * (std**2)
 
     # Create two multivariate normal distributions
     dist1 = MultivariateNormal(mu1, covariance_matrix)
@@ -28,9 +29,9 @@ def two_peak_density(x, mu1=None, mu2=None, std=0.1):
 
 def two_peak_density_step(x, mu1=None, mu2=None, std=0.5):
     if mu1 is None:
-        mu1 = torch.tensor([-1., -1.])
+        mu1 = torch.tensor([-1.0, -1.0])
     if mu2 is None:
-        mu2 = torch.tensor([1., 1.])
+        mu2 = torch.tensor([1.0, 1.0])
 
     # compute the minimal distance to the two peaks
     d1 = torch.norm(x - mu1, dim=-1)

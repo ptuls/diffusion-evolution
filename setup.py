@@ -20,6 +20,6 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    packages=['diffevo'],
+    packages=["diffevo"],
     python_requires=">=3.6",
 )

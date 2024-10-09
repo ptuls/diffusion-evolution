@@ -19,11 +19,12 @@ def statistics(func):
     Args of decorated function:
         records: list of records of experiments
             structure: experiments[experiment_1[fitness_func_1, ...], ...]
-    
+
     Returns:
         list of statistics of each experiment
             structure: [num_experiments, num_fitness_funcs, *statistics]
     """
+
     def wrapper(records, *args, **kwargs):
         results = []
         for record in records:
@@ -32,9 +33,11 @@ def statistics(func):
                 result_temp[fitness_func] = func(record[fitness_func], *args, **kwargs)
             results.append(result_temp)
         return results
+
     return wrapper
 
-def group(statistics:list):
+
+def group(statistics: list):
     results = {}
     for measure in statistics:
         for fitness_func in measure.keys():
@@ -43,37 +46,42 @@ def group(statistics:list):
             results[fitness_func].append(measure[fitness_func])
     return results
 
-def avg_group(statistics:list):
+
+def avg_group(statistics: list):
     grouped = group(statistics)
     for k, v in grouped.items():
         grouped[k] = np.mean(v, axis=0)
-    
+
     return grouped
 
-def std_group(statistics:list):
+
+def std_group(statistics: list):
     grouped = group(statistics)
     for k, v in grouped.items():
         grouped[k] = np.std(v, axis=0)
-    
+
     return grouped
+
 
 def get_top_values(fitness, x, n):
     idx = np.argsort(-fitness)[:n]
     return x[idx]
 
+
 @statistics
 def top_rewards(record, n=None, use_x0=False):
     if use_x0:
-        fitnesses = record['x0_fitness']
+        fitnesses = record["x0_fitness"]
     else:
-        fitnesses = record['fitnesses']
-    
+        fitnesses = record["fitnesses"]
+
     if n is not None:
         fitnesses = fitnesses[-1]
         fitnesses = get_top_values(fitnesses, fitnesses, n)
     else:
         fitnesses = fitnesses[-1]
     return fitnesses.mean().item()
+
 
 def prob(x, scale=10):
     classification = torch.round(x * scale).long()
@@ -82,21 +90,24 @@ def prob(x, scale=10):
     prob = num.float() / num.sum()
     return prob
 
+
 def entropy(x, scale=10):
     p = prob(x, scale)
     return torch.sum(-p * torch.log2(p))
 
+
 @statistics
 def point_entropy(record, n=None, scale=10, use_x0=False):
-    x = record['trace'][-1]
+    x = record["trace"][-1]
     if use_x0:
-        fitnesses = record['x0_fitness']
+        fitnesses = record["x0_fitness"]
     else:
-        fitnesses = record['fitnesses']
-    
+        fitnesses = record["fitnesses"]
+
     if n is not None:
         x = get_top_values(fitnesses[-1], x, n)
     return entropy(x, scale).item()
+
 
 def get_all_records(num_experiments):
     all_records = dict()
@@ -111,13 +122,13 @@ def get_all_records(num_experiments):
         for i in tqdm(range(num_experiments)):
             r = benchmark(objs, num_steps=step, disable_bar=True, limit_val=100, num_pop=512)
             records.append(r)
-        
+
         all_records[name] = records
-    
+
     return all_records
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     num_experiments = 100
     top_k = 64
     cache = False
@@ -128,27 +139,31 @@ if __name__ == '__main__':
     torch.manual_seed(42)
 
     if cache:
-        all_records = torch.load('./data/all_records.pt')
+        all_records = torch.load("./data/all_records.pt")
     else:
         all_records = get_all_records(num_experiments)
-        torch.save(all_records, './data/all_records.pt')
+        torch.save(all_records, "./data/all_records.pt")
 
     # save to a .md file
 
     # add title
-    with open('./data/results.md', 'w') as f:
-        f.write('# Benchmark Results\n\n')
-    
+    with open("./data/results.md", "w") as f:
+        f.write("# Benchmark Results\n\n")
+
     # entropy
     entropy_table = pd.DataFrame()
     for name, records in all_records.items():
-        for k, v in avg_group(point_entropy(all_records[name], n=top_k, use_x0=(name=='DiffEvo_benchmark'))).items():
+        for k, v in avg_group(
+            point_entropy(all_records[name], n=top_k, use_x0=(name == "DiffEvo_benchmark"))
+        ).items():
             entropy_table.loc[k, name.replace("_benchmark", "")] = v
-    
+
     # fitness
     fitness_table = pd.DataFrame()
     for name, records in all_records.items():
-        for k, v in avg_group(top_rewards(all_records[name], n=top_k, use_x0=(name=='DiffEvo_benchmark'))).items():
+        for k, v in avg_group(
+            top_rewards(all_records[name], n=top_k, use_x0=(name == "DiffEvo_benchmark"))
+        ).items():
             fitness_table.loc[k, name.replace("_benchmark", "")] = v
 
     # merge two tables together, each cell is "entropy (fitness)"
@@ -156,12 +171,14 @@ if __name__ == '__main__':
     merged_table = pd.DataFrame()
     for i in range(len(entropy_table)):
         for j in range(len(entropy_table.columns)):
-            merged_table.loc[i, j] = f"{entropy_table.iloc[i, j]:.2f} ({fitness_table.iloc[i, j]:.2f})"
+            merged_table.loc[i, j] = (
+                f"{entropy_table.iloc[i, j]:.2f} ({fitness_table.iloc[i, j]:.2f})"
+            )
     # add row and column index
     merged_table.index = entropy_table.index
     merged_table.columns = entropy_table.columns
-    
-    with open('./data/results.md', 'a') as f:
-        f.write('## Result Table\n\n')
-        f.write('Each cell is entropy (fitness)\n\n')
-        f.write(merged_table.to_markdown(floatfmt=".2f") + '\n\n')
+
+    with open("./data/results.md", "a") as f:
+        f.write("## Result Table\n\n")
+        f.write("Each cell is entropy (fitness)\n\n")
+        f.write(merged_table.to_markdown(floatfmt=".2f") + "\n\n")

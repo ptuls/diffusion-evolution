@@ -10,9 +10,11 @@ class RandomProjection(nn.Module):
         self.linear = nn.Linear(in_features, out_features, bias=False)
         self.normalize = normalize
         self.init_weight()
-    
+
     def init_weight(self):
-        self.linear.weight.data = torch.randn_like(self.linear.weight.data) / (self.in_features ** 0.5)
+        self.linear.weight.data = torch.randn_like(self.linear.weight.data) / (
+            self.in_features**0.5
+        )
         if self.normalize:
             self.linear.weight.data /= self.linear.weight.data.norm(dim=1, keepdim=True)
 

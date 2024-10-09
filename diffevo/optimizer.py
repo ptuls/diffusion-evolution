@@ -41,17 +41,19 @@ class DiffEvo:
         ```
     """
 
-    def __init__(self,
-                 num_step: int = 100,
-                 density='kde',
-                 noise:float=1.0,
-                 scaling: float=1,
-                 fitness_mapping=None,
-                 kde_bandwidth=0.1):
+    def __init__(
+        self,
+        num_step: int = 100,
+        density="kde",
+        noise: float = 1.0,
+        scaling: float = 1,
+        fitness_mapping=None,
+        kde_bandwidth=0.1,
+    ):
         self.num_step = num_step
 
-        if not density in ['uniform', 'kde']:
-            raise NotImplementedError(f'Density estimator {density} is not implemented.')
+        if not density in ["uniform", "kde"]:
+            raise NotImplementedError(f"Density estimator {density} is not implemented.")
         self.density = density
         self.kde_bandwidth = kde_bandwidth
         self.scaling = scaling
@@ -61,7 +63,7 @@ class DiffEvo:
         else:
             self.fitness_mapping = fitness_mapping
         self.scheduler = DDIMScheduler(self.num_step)
-    
+
     def optimize(self, fit_fn, initial_population, trace=False):
         x = initial_population
 
@@ -76,10 +78,10 @@ class DiffEvo:
             if trace:
                 population_trace.append(x)
             fitness_count.append(fitness)
-        
+
         if trace:
             population_trace = torch.stack(population_trace) * self.scaling
-        
+
         if trace:
             return x, population_trace, fitness_count
         else:

@@ -5,25 +5,26 @@ from .kde import KDE
 
 class BayesianEstimator:
     """Bayesian Estimator of the origin points, based on current samples and fitness values."""
-    def __init__(self, x: torch.tensor, fitness: torch.tensor, alpha, density='uniform', h=0.1):
+
+    def __init__(self, x: torch.tensor, fitness: torch.tensor, alpha, density="uniform", h=0.1):
         self.x = x
         self.fitness = fitness
         self.alpha = alpha
         self.density_method = density
         self.h = h
-        if not density in ['uniform', 'kde']:
-            raise NotImplementedError(f'Density estimator {density} is not implemented.')
+        if not density in ["uniform", "kde"]:
+            raise NotImplementedError(f"Density estimator {density} is not implemented.")
 
     def append(self, estimator):
         self.x = torch.cat([self.x, estimator.x], dim=0)
         self.fitness = torch.cat([self.fitness, estimator.fitness], dim=0)
-    
+
     def density(self, x):
-        if self.density_method == 'uniform':
+        if self.density_method == "uniform":
             return torch.ones(x.shape[0]) / x.shape[0]
-        elif self.density_method == 'kde':
+        elif self.density_method == "kde":
             return KDE(x, h=self.h)
-    
+
     @staticmethod
     def norm(x):
         if x.shape[-1] == 1:
@@ -34,11 +35,11 @@ class BayesianEstimator:
 
     def gaussian_prob(self, x, mu, sigma):
         dist = self.norm(x - mu)
-        return torch.exp(-(dist ** 2) / (2 * sigma ** 2))
+        return torch.exp(-(dist**2) / (2 * sigma**2))
 
     def _estimate(self, x_t, p_x_t):
         # diffusion proability, P = N(x_t; \sqrt{α_t}x,\sqrt{1-α_t})
-        mu = self.x * (self.alpha ** 0.5)
+        mu = self.x * (self.alpha**0.5)
         sigma = (1 - self.alpha) ** 0.5
         p_diffusion = self.gaussian_prob(x_t, mu, sigma)
 
@@ -58,16 +59,25 @@ class BayesianEstimator:
         return self.estimate(x_t)
 
     def __repr__(self):
-        return f'<BayesianEstimator {len(self.x)} samples>'
+        return f"<BayesianEstimator {len(self.x)} samples>"
+
 
 class LatentBayesianEstimator(BayesianEstimator):
-    def __init__(self, x: torch.tensor, latent: torch.tensor, fitness: torch.tensor, alpha, density='uniform', h=0.1):
+    def __init__(
+        self,
+        x: torch.tensor,
+        latent: torch.tensor,
+        fitness: torch.tensor,
+        alpha,
+        density="uniform",
+        h=0.1,
+    ):
         super().__init__(x, fitness, alpha, density=density, h=h)
         self.z = latent
 
     def _estimate(self, z_t, p_z_t):
         # diffusion proability, P = N(x_t; \sqrt{α_t}x,\sqrt{1-α_t})
-        mu = self.z * (self.alpha ** 0.5)
+        mu = self.z * (self.alpha**0.5)
         sigma = (1 - self.alpha) ** 0.5
         p_diffusion = self.gaussian_prob(z_t, mu, sigma)
 
@@ -77,7 +87,7 @@ class LatentBayesianEstimator(BayesianEstimator):
         origin = torch.sum(prob.unsqueeze(1) * self.x, dim=0) / (z + 1e-9)
 
         return origin
-    
+
     def estimate(self, z_t):
         p_z_t = self.density(self.z)
         origin = torch.vmap(self._estimate, (0, 0))(z_t, p_z_t)
@@ -97,12 +107,14 @@ def ddim_step(xt, x0, alphas: tuple, noise: float = None):
     """
     alphat, alphatp = alphas
     sigma = ddpm_sigma(alphat, alphatp) * noise
-    eps = (xt - (alphat ** 0.5) * x0) / (1.0 - alphat) ** 0.5
+    eps = (xt - (alphat**0.5) * x0) / (1.0 - alphat) ** 0.5
     if sigma is None:
         sigma = ddpm_sigma(alphat, alphatp)
-    x_next = (alphatp ** 0.5) * x0 + ((1 - alphatp - sigma ** 2) ** 0.5) * \
-        eps + sigma * torch.randn_like(x0)
+    x_next = (
+        (alphatp**0.5) * x0 + ((1 - alphatp - sigma**2) ** 0.5) * eps + sigma * torch.randn_like(x0)
+    )
     return x_next
+
 
 def ddpm_sigma(alphat, alphatp):
     """Compute the default sigma for the DDPM algorithm."""
@@ -111,12 +123,13 @@ def ddpm_sigma(alphat, alphatp):
 
 class BayesianGenerator:
     """Bayesian Generator for the DDIM algorithm."""
-    def __init__(self, x, fitness, alpha, density='uniform', h=0.1):
+
+    def __init__(self, x, fitness, alpha, density="uniform", h=0.1):
         self.x = x
         self.fitness = fitness
         self.alpha, self.alpha_past = alpha
         self.estimator = BayesianEstimator(self.x, self.fitness, self.alpha, density=density, h=h)
-    
+
     def generate(self, noise=1.0, return_x0=False):
         x0_est = self.estimator(self.x)
         x_next = ddim_step(self.x, x0_est, (self.alpha, self.alpha_past), noise=noise)
@@ -131,13 +144,16 @@ class BayesianGenerator:
 
 class LatentBayesianGenerator(BayesianGenerator):
     """Bayesian Generator for the DDIM algorithm."""
-    def __init__(self, x, latent, fitness, alpha, density='uniform', h=0.1):
+
+    def __init__(self, x, latent, fitness, alpha, density="uniform", h=0.1):
         self.x = x
         self.latent = latent
         self.fitness = fitness
         self.alpha, self.alpha_past = alpha
-        self.estimator = LatentBayesianEstimator(self.x, self.latent, self.fitness, self.alpha, density=density, h=h)
-    
+        self.estimator = LatentBayesianEstimator(
+            self.x, self.latent, self.fitness, self.alpha, density=density, h=h
+        )
+
     def generate(self, noise=1.0, return_x0=False):
         x0_est = self.estimator(self.latent)
         x_next = ddim_step(self.x, x0_est, (self.alpha, self.alpha_past), noise=noise)
