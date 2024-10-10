@@ -22,7 +22,8 @@ class Identity:
 
 
 class Energy(Identity):
-    """Fitness mapping function that treats the fitness as energy.
+    """Fitness mapping function that treats the fitness as energy. Equivalent to the
+    Boltzmann distribution.
 
     Args:
         temperature: float, the temperature of the system.

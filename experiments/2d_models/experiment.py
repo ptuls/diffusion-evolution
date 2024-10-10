@@ -1,9 +1,8 @@
 from two_peaks.experiment import plot_diffusion as plot_diffusion_two_peaks
 import torch
 import matplotlib.pyplot as plt
-from diffevo import DiffEvo, BayesianGenerator, DDIMScheduler
+from diffevo import BayesianGenerator, DDIMScheduler
 from two_peaks.experiment import two_peak_density
-from two_peaks_step.experiment import two_peak_density as two_peak_density_step
 from tqdm import tqdm
 import numpy as np
 import pathlib

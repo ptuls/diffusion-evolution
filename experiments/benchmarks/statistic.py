@@ -172,9 +172,9 @@ if __name__ == "__main__":
     merged_table = pd.DataFrame()
     for i in range(len(entropy_table)):
         for j in range(len(entropy_table.columns)):
-            merged_table.loc[i, j] = (
-                f"{entropy_table.iloc[i, j]:.2f} ({fitness_table.iloc[i, j]:.2f})"
-            )
+            merged_table.loc[
+                i, j
+            ] = f"{entropy_table.iloc[i, j]:.2f} ({fitness_table.iloc[i, j]:.2f})"
     # add row and column index
     merged_table.index = entropy_table.index
     merged_table.columns = entropy_table.columns

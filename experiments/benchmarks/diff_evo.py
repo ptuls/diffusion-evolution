@@ -15,7 +15,6 @@ def energy_prob_mapping(fitness, temperature):
 
 
 def experiment(obj, num_pop=256, num_step=100, scaling=4.0, temperatures=None, disable_bar=False):
-
     scheduler = DDIMSchedulerCosine(num_step=num_step)
 
     x = torch.randn(num_pop, 2)

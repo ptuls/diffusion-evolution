@@ -119,7 +119,6 @@ def OpenES_benchmark(
 
 
 if __name__ == "__main__":
-
     objs = ["rosenbrock", "beale", "himmelblau", "ackley", "rastrigin"]
 
     plt.figure(figsize=(12, 3))
